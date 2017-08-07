@@ -407,3 +407,6 @@
                         (make-string nodes-out) " nodes out ")))
 
 
+(provide cudnnCreate cudnnDestroy _cudnnHandle_t-pointer
+         _cudnnHandle_t
+         _cudnn-status_t)

@@ -6,11 +6,19 @@
  ffi/unsafe
  ffi/unsafe/define)
 
+(define gpu-mem-path (build-path "libgpumem"))
+
+(define-ffi-definer define-gpu-mem (ffi-lib gpu-mem-path))
+
+(define-gpu-mem initGPUData (_fun _pointer _int _float -> _void))
+
 (define cudann-path (build-path "/" "media" "Hadoop2" "nvidia" "cuda" "lib64" "libcudnn"))
 
 (define-ffi-definer define-cudann (ffi-lib cudann-path))
 
+(define cuda-path (build-path "/" "usr" "local" "cuda-8.0" "targets" "x86_64-linux" "lib" "libcudart"))
 
+(define-ffi-definer define-cuda (ffi-lib cuda-path))
 ;;See https://www.cs.cmu.edu/afs/cs/academic/class/15668-s11/www/cuda-doc/html/group__CUDART__TYPES_ge15d9c8b7a240312b533d6122558085a.html#ge15d9c8b7a240312b533d6122558085a
 ;;typedef struct CUstream_st* cudaStream_t
 (define _cudaStream_t (_cpointer '_CUstream_st))
@@ -48,6 +56,22 @@
 ;;cudnnStatus_t             cudnnGetStream     (cudnnHandle_t handle, cudaStream_t *streamId);
 (define-cudann cudnnGetStream (_fun _cudnnHandle_t _cudaStream_t-pointer -> _cudnn-status_t))
 
+
+;;Define the caller for cudaMalloc
+(define-cuda cudaMalloc (_fun _pointer _size -> _cudnn-status_t))
+
+;;Define the caller for cudaFree
+(define-cuda cudaFree (_fun _pointer -> _cudnn-status_t))
+
+;;Define enumeration for specifying the type of copy
+(define _cuda-memcpy-kind_t
+  (_enum '(host-to-host = 0
+		   host-to-device
+		   device-to-host
+                   device-to-device)))
+
+;;Define caller for cudaMemcpy
+(define-cuda cudaMemcpy (_fun _pointer _pointer _size _cuda-memcpy-kind_t -> _cudnn-status_t))
 
 ;;typedef struct cudnnTensorStruct*          cudnnTensorDescriptor_t;
 (define _cudnnTensorDescriptor_t (_cpointer '_cudnnTensorStruct))
@@ -408,5 +432,8 @@
 
 
 (provide cudnnCreate cudnnDestroy _cudnnHandle_t-pointer
-         _cudnnHandle_t
+         cudaMalloc cudaFree cudaMemcpy
+         cudnnCreateTensorDescriptor
+         _cudnnHandle_t _cuda-memcpy-kind_t
+         _cudnnTensorDescriptor_t
          _cudnn-status_t)

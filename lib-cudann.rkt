@@ -109,6 +109,14 @@
 ;;Create an instance of a generic Tensor descriptor
 (define-cudann cudnnCreateTensorDescriptor (_fun _cudnnTensorDescriptor_t  -> _cudnn-status_t))
 
+(define-cudann cudnnSetTensorNdDescriptor (_fun _cudnnTensorDescriptor_t
+                                                _cudnn-data-type_t
+                                                _int
+                                                _pointer
+                                                _pointer
+                                                -> _cudnn-status_t))
+
+
 
 (define _cudnn-tensor-format_t
   (_enum '(tensor_nchw = 0

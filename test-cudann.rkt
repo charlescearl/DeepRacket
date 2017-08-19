@@ -32,6 +32,3 @@
                  )
        (check-equal? res 'success "Tensor Descriptor Creation")
        ))))
-
-
-

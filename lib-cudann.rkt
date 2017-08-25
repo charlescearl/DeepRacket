@@ -23,6 +23,8 @@
 ;;typedef struct CUstream_st* cudaStream_t
 (define _cudaStream_t (_cpointer '_CUstream_st))
 (define _cudaStream_t-pointer (_cpointer '_cudaStream_t))
+(define _cudaEvent_t (_cpointer '_CUevent_st))
+(define _cudaEvent_t-pointer (_cpointer '_cudaEvent_t))
 (define _cudnnHandle_t (_cpointer '_cudnnContext))
 (define _cudnnHandle_t-pointer (_cpointer '_cudnnHandle_t))
 ;; Using cudnn.torch as a guide https://github.com/soumith/cudnn.torch
@@ -63,6 +65,14 @@
 ;;Define the caller for cudaFree
 (define-cuda cudaFree (_fun _pointer -> _cudnn-status_t))
 
+;;Synchronize device
+(define-cuda cudaDeviceSynchronize (_fun -> _cudnn-status_t))
+
+;;Create an event
+(define-cuda cudaEventCreate (_fun _cudaEvent_t -> _cudnn-status_t))
+
+;;Record event
+(define-cuda cudaEventRecord (_fun _cudaEvent_t-pointer -> _cudnn-status_t))
 ;;Define enumeration for specifying the type of copy
 (define _cuda-memcpy-kind_t
   (_enum '(host-to-host = 0
@@ -105,6 +115,9 @@
 ;;Maximum supported number of tensor dimensions
 (define _cudnn-dim-max-fake-enum_t
   (_enum '(dim_max = 8)))
+
+;;Filters
+(define-cudann cudnnCreateFilterDescriptor (_fun _cudnnFilterDescriptor_t  -> _cudnn-status_t))
 
 ;;Create an instance of a generic Tensor descriptor
 (define-cudann cudnnCreateTensorDescriptor (_fun _cudnnTensorDescriptor_t  -> _cudnn-status_t))
@@ -181,6 +194,9 @@
 
 ;;helper function to determine size of the states to be passed to cudnnSetDropoutDescriptor
 (define-cudann cudnnDropoutGetReserveSpaceSize (_fun _cudnnHandle_t _size -> _cudnn-status_t))
+
+;;helper function to determine size of the states to be passed to cudnnSetDropoutDescriptor
+(define-cudann cudnnDropoutGetStatesSize (_fun _cudnnHandle_t _uintptr -> _cudnn-status_t))
 
 ;;Set parameters of the Dropout Descriptor
 (define-cudann
@@ -440,8 +456,17 @@
 
 
 (provide cudnnCreate cudnnDestroy _cudnnHandle_t-pointer
-         cudaMalloc cudaFree cudaMemcpy
+         cudaMalloc cudaFree cudaMemcpy cudaDeviceSynchronize
          cudnnCreateTensorDescriptor
+         cudnnGetRNNParamsSize
+         cudnnDropoutGetStatesSize
+         cudnnGetRNNTrainingReserveSize
+         cudnnGetRNNWorkspaceSize
+         cudnnGetRNNLinLayerMatrixParams
+         cudnnGetRNNLinLayerBiasParams
+         cudnnCreateFilterDescriptor
          _cudnnHandle_t _cuda-memcpy-kind_t
          _cudnnTensorDescriptor_t
+         _cudnnFilterDescriptor_t
+         _cudaEvent_t
          _cudnn-status_t)

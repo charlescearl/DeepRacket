@@ -118,6 +118,12 @@
 
 ;;Filters
 (define-cudann cudnnCreateFilterDescriptor (_fun _cudnnFilterDescriptor_t  -> _cudnn-status_t))
+(define-cudann cudnnSetFilterNdDescriptor (_fun _cudnnFilterDescriptor_t
+						_cudnn-data-type_t
+						_cudnn-tensor-format_t
+						_int
+						_pointer
+						-> _cudnn-status_t))
 
 ;;Create an instance of a generic Tensor descriptor
 (define-cudann cudnnCreateTensorDescriptor (_fun _cudnnTensorDescriptor_t  -> _cudnn-status_t))
@@ -458,13 +464,19 @@
 (provide cudnnCreate cudnnDestroy _cudnnHandle_t-pointer
          cudaMalloc cudaFree cudaMemcpy cudaDeviceSynchronize
          cudnnCreateTensorDescriptor
-         cudnnGetRNNParamsSize
+	 cudnnSetTensorNdDescriptor
+	 cudnnCreateDropoutDescriptor
+	 cudnnSetDropoutDescriptor
          cudnnDropoutGetStatesSize
+	 cudnnCreateRNNDescriptor
+	 cudnnSetRNNDescriptor
+         cudnnGetRNNParamsSize
          cudnnGetRNNTrainingReserveSize
          cudnnGetRNNWorkspaceSize
          cudnnGetRNNLinLayerMatrixParams
          cudnnGetRNNLinLayerBiasParams
          cudnnCreateFilterDescriptor
+	 cudnnSetFilterNdDescriptor
          _cudnnHandle_t _cuda-memcpy-kind_t
          _cudnnTensorDescriptor_t
          _cudnnFilterDescriptor_t

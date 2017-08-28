@@ -32,3 +32,10 @@
                  )
        (check-equal? res 'success "Tensor Descriptor Creation")
        ))))
+
+(define initialize-from-array-tests
+  (test-suite
+   "Test initialization of float array"
+   (test-case
+       "Check the initialization of the float array"
+     (check-equal? "a" "a"))))

@@ -21,8 +21,9 @@
 (define-ffi-definer define-cuda (ffi-lib cuda-path))
 ;;See https://www.cs.cmu.edu/afs/cs/academic/class/15668-s11/www/cuda-doc/html/group__CUDART__TYPES_ge15d9c8b7a240312b533d6122558085a.html#ge15d9c8b7a240312b533d6122558085a
 ;;typedef struct CUstream_st* cudaStream_t
-(define _cudaStream_t (_cpointer '_CUstream_st))
-(define _cudaStream_t-pointer (_cpointer '_cudaStream_t))
+(define-cpointer-type _cudaStream_t (_cpointer '_CUstream_st))
+					;(define _cudaStream_t (_cpointer '_CUstream_st))
+(define-cpointer-type _cudaStream_t-pointer (_cpointer '_cudaStream_t))
 (define _cudaEvent_t (_cpointer '_CUevent_st))
 (define _cudaEvent_t-pointer (_cpointer '_cudaEvent_t))
 (define _cudnnHandle_t (_cpointer '_cudnnContext))
@@ -84,13 +85,13 @@
 (define-cuda cudaMemcpy (_fun _pointer _pointer _size _cuda-memcpy-kind_t -> _cudnn-status_t))
 
 ;;typedef struct cudnnTensorStruct*          cudnnTensorDescriptor_t;
-(define _cudnnTensorDescriptor_t (_cpointer '_cudnnTensorStruct))
+(define-cpointer-type _cudnnTensorDescriptor_t (_cpointer '_cudnnTensorStruct))
 ;;typedef struct cudnnConvolutionStruct*     cudnnConvolutionDescriptor_t;
 (define _cudnnConvolutionDescriptor_t (_cpointer '_cudnnConvolutionStruct))
 ;; typedef struct cudnnPoolingStruct*         cudnnPoolingDescriptor_t;
 (define _cudnnPoolingDescriptor_t (_cpointer '_cudnnPoolingStruct))
 ;; ;; typedef struct cudnnFilterStruct*          cudnnFilterDescriptor_t
-(define _cudnnFilterDescriptor_t (_cpointer '_cudnnFilterStruct))
+(define-cpointer-type _cudnnFilterDescriptor_t (_cpointer '_cudnnFilterStruct))
 
 ;; typedef struct cudnnLRNStruct*             cudnnLRNDescriptor_t;
 (define _cudnnLRNDescriptor_t (_cpointer '_cudnnLRNStruct))
@@ -116,13 +117,17 @@
 (define _cudnn-dim-max-fake-enum_t
   (_enum '(dim_max = 8)))
 
+(define _cudnn-tensor-format_t
+  (_enum '(tensor_nchw = 0
+                       tensor_nhwc)))
 ;;Filters
 (define-cudann cudnnCreateFilterDescriptor (_fun _cudnnFilterDescriptor_t  -> _cudnn-status_t))
+(define-cudann cudnnDestroyFilterDescriptor (_fun _cudnnFilterDescriptor_t -> _cudnn-status_t))
 (define-cudann cudnnSetFilterNdDescriptor (_fun _cudnnFilterDescriptor_t
 						_cudnn-data-type_t
 						_cudnn-tensor-format_t
 						_int
-						_pointer
+						_uintptr
 						-> _cudnn-status_t))
 
 ;;Create an instance of a generic Tensor descriptor
@@ -131,15 +136,13 @@
 (define-cudann cudnnSetTensorNdDescriptor (_fun _cudnnTensorDescriptor_t
                                                 _cudnn-data-type_t
                                                 _int
-                                                _pointer
-                                                _pointer
+                                                _uintptr
+                                                _uintptr
                                                 -> _cudnn-status_t))
 
 
 
-(define _cudnn-tensor-format_t
-  (_enum '(tensor_nchw = 0
-                       tensor_nhwc)))
+
 
 ;;Softmax function
 (define _cudnn-sotmax-algorithm_t
@@ -190,13 +193,15 @@
 
 ;;Dropout layer descriptor
 ;; The Dropout structure
-(define _cudnnDropoutDescriptor_t (_cpointer '_cudnnDropoutStruct))
-
+;(define _cudnnDropoutDescriptor_t (_cpointer '_cudnnDropoutStruct))
+(define-cpointer-type _cudnnDropoutDescriptor_t (_cpointer '_cudnnDropoutStruct))
 ;;Create Dropout descriptor
 (define-cudann cudnnCreateDropoutDescriptor (_fun _cudnnDropoutDescriptor_t -> _cudnn-status_t))
 
 ;;Destroy Dropout descriptor
 (define-cudann cudnnDestroyDropoutDescriptor (_fun _cudnnDropoutDescriptor_t -> _cudnn-status_t))
+
+
 
 ;;helper function to determine size of the states to be passed to cudnnSetDropoutDescriptor
 (define-cudann cudnnDropoutGetReserveSpaceSize (_fun _cudnnHandle_t _size -> _cudnn-status_t))
@@ -267,7 +272,7 @@
 
 
 ;; The RNN structure
-(define _cudnnRNNDescriptor_t (_cpointer '_cudnnRNNStruct))
+(define-cpointer-type _cudnnRNNDescriptor_t (_cpointer '_cudnnRNNStruct))
 
 ;;Create RNN descriptor
 (define-cudann cudnnCreateRNNDescriptor (_fun _cudnnRNNDescriptor_t -> _cudnn-status_t))
@@ -476,9 +481,19 @@
          cudnnGetRNNLinLayerMatrixParams
          cudnnGetRNNLinLayerBiasParams
          cudnnCreateFilterDescriptor
+	 cudnnDestroyFilterDescriptor
 	 cudnnSetFilterNdDescriptor
+	 cudnnRNNForwardTraining
+	 cudnnRNNBackwardWeights
+	 cudnnRNNBackwardData
          _cudnnHandle_t _cuda-memcpy-kind_t
          _cudnnTensorDescriptor_t
          _cudnnFilterDescriptor_t
+	 _cudnnDropoutDescriptor_t
+	 _cudnnRNNDescriptor_t
          _cudaEvent_t
+	 _cudnn-data-type_t
+	 _cudnn-rnn-input-mode_t
+	 _cudnn-rnn-mode_t
+	 _cudnn-tensor-format_t
          _cudnn-status_t)

@@ -224,3 +224,25 @@
 
 
 ;; (provide tensor rnn ptr-array-ref array->cptr)
+(provide
+ tensor
+ rnn
+ cudnnSetTensorNdDescriptor 
+ cudnnCreateTensorDescriptor 
+ cudnnCreateDropoutDescriptor 
+ cudnnSetRNNDescriptor 
+ cudnnCreateRNNDescriptor 
+ cudnnCreateFilterDescriptor 
+ cudnnDestroyFilterDescriptor 
+ cudnnSetFilterNdDescriptor 
+ cudnnGetRNNParamsSize 
+ cudnnDropoutGetStatesSize 
+ cudnnGetRNNWorkspaceSize 
+ cudnnGetRNNTrainingReserveSize 
+ cudnnGetRNNLinLayerMatrixParams 
+ cudnnGetRNNLinLayerBiasParams 
+ cudnnRNNForwardTraining 
+ cudnnRNNBackwardWeights
+  
+ cudnnRNNBackwardData
+  )

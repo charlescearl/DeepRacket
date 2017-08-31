@@ -74,6 +74,10 @@
 
 ;;Record event
 (define-cuda cudaEventRecord (_fun _cudaEvent_t-pointer -> _cudnn-status_t))
+
+;;Synch event
+(define-cuda cudaEventSynchronize (_fun _cudaEvent_t-pointer -> _cudnn-status_t))
+
 ;;Define enumeration for specifying the type of copy
 (define _cuda-memcpy-kind_t
   (_enum '(host-to-host = 0
@@ -486,6 +490,9 @@
 	 cudnnRNNForwardTraining
 	 cudnnRNNBackwardWeights
 	 cudnnRNNBackwardData
+	 cudaEventCreate
+	 cudaEventRecord
+	 cudaEventSynchronize
          _cudnnHandle_t _cuda-memcpy-kind_t
          _cudnnTensorDescriptor_t
          _cudnnFilterDescriptor_t

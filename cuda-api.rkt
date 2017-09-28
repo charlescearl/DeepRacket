@@ -1,27 +1,6 @@
+;; Provides interfaces to the nvidia cuda api
 ;;Typed tensors
 #lang typed/racket
-(require/typed
-  ffi/unsafe
-  [#:opaque CPointer cpointer?]
-  [#:opaque CType ctype?]
-  [_double CType]
-  [_float CType]
-  [_uintptr CType]
-  [_pointer CType]
-  [_int CType]
-  [_size CType]
-  [flvector->cpointer (FlVector -> CPointer)]
-  [ptr-ref (CPointer CType Exact-Nonnegative-Integer -> Any)]
-  [ptr-set! (CPointer CType Exact-Nonnegative-Integer Any -> Void)]
-  [ctype-sizeof (CType -> Exact-Nonnegative-Integer)]
-  
-  )
-(require/typed
- ffi/unsafe/cvector
- [#:opaque CVector cvector?]
- [cvector (CType Any -> CVector)])
-(require math/base)
-(require math/array)
 
 (require/typed
  "lib-cudann.rkt"
@@ -35,8 +14,20 @@
  [cudaEventSynchronize (CType -> CType)]
  [cudaMemcpy (CType CType Exact-Nonnegative-Integer CType -> CType)]
  [cudaFree (CType -> CType)]
+ [cudaMalloc (CPointer Exact-Nonnegative-Integer -> CType)]
  [cudnnDestroy (CType -> CType)]
  )
+
+(require "ffi-functional.rkt")
+
+;; Pointer size
+(: POINTER-SIZE Exact-Nonnegative-Integer)
+(define POINTER-SIZE 8)
+
+;;Get a pointer
+(: get-pointer (-> CPointer))
+(define (get-pointer )
+  (malloc 'atomic-interior POINTER-SIZE))
 
 (provide
  cudaDeviceSynchronize
@@ -44,6 +35,9 @@
  cudaEventRecord
  cudaEventSynchronize
  cudaMemcpy
+ cudaMalloc
  cudaFree
  cudnnDestroy
+ get-pointer
  )
+

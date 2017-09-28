@@ -90,6 +90,8 @@
 
 ;;typedef struct cudnnTensorStruct*          cudnnTensorDescriptor_t;
 (define-cpointer-type _cudnnTensorDescriptor_t (_cpointer '_cudnnTensorStruct))
+(define-cpointer-type _cudnnTensorDescriptor_t-ptr (_cpointer '_cudnnTensorDescriptor_t))
+
 ;;typedef struct cudnnConvolutionStruct*     cudnnConvolutionDescriptor_t;
 (define _cudnnConvolutionDescriptor_t (_cpointer '_cudnnConvolutionStruct))
 ;; typedef struct cudnnPoolingStruct*         cudnnPoolingDescriptor_t;
@@ -135,7 +137,7 @@
 						-> _cudnn-status_t))
 
 ;;Create an instance of a generic Tensor descriptor
-(define-cudann cudnnCreateTensorDescriptor (_fun _cudnnTensorDescriptor_t  -> _cudnn-status_t))
+(define-cudann cudnnCreateTensorDescriptor (_fun _cudnnTensorDescriptor_t-ptr  -> _cudnn-status_t))
 
 (define-cudann cudnnSetTensorNdDescriptor (_fun _cudnnTensorDescriptor_t
                                                 _cudnn-data-type_t

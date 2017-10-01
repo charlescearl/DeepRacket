@@ -26,8 +26,8 @@
 (define-cpointer-type _cudaStream_t-pointer (_cpointer '_cudaStream_t))
 (define _cudaEvent_t (_cpointer '_CUevent_st))
 (define _cudaEvent_t-pointer (_cpointer '_cudaEvent_t))
-(define _cudnnHandle_t (_cpointer '_cudnnContext))
-(define _cudnnHandle_t-pointer (_cpointer '_cudnnHandle_t))
+(define-cpointer-type _cudnnHandle_t (_cpointer '_cudnnContext))
+(define-cpointer-type _cudnnHandle_t-pointer (_cpointer '_cudnnHandle_t))
 ;; Using cudnn.torch as a guide https://github.com/soumith/cudnn.torch
 ;; cudnn return codes
 (define _cudnn-status_t
@@ -42,6 +42,35 @@
 		   execution_failed
 		   not_supported
 		   license_error)))
+
+(define  _cuda-error_t
+  (_enum '(success = 0
+		   ErrorMissingConfiguration
+		   ErrorMemoryAllocation
+		   ErrorInitializationError
+		   ErrorLaunchFailure
+		   ErrorPriorLaunchFailure
+		   ErrorLaunchTimeout
+		   ErrorLaunchOutOfResources
+		   ErrorInvalidDeviceFunction
+		   ErrorInvalidConfiguration
+		   ErrorInvalidDevice
+		   ErrorInvalidValue
+		   ErrorInvalidPitchValue
+		   ErrorInvalidSymbol
+		   ErrorMapBufferObjectFailed
+		   ErrorUnmapBufferObjectFailed
+		   ErrorInvalidHostPointer
+		   ErrorInvalidDevicePointer
+		   ErrorInvalidTexture
+		   ErrorInvalidTextureBinding
+		   ErrorInvalidChannelDescriptor
+		   ErrorInvalidMemcpyDirection
+		   ErrorAddressOfConstant
+		   ErrorTextureFetchFailed
+		   ErrorTextureNotBound
+		   ErrorSynchronizationError
+		   )))
 
 ;; Error messages
 ;; const char *              cudnnGetErrorString(cudnnStatus_t status);
@@ -61,7 +90,7 @@
 
 
 ;;Define the caller for cudaMalloc
-(define-cuda cudaMalloc (_fun _pointer _size -> _cudnn-status_t))
+(define-cuda cudaMalloc (_fun _pointer _size ->  _cuda-error_t))
 
 ;;Define the caller for cudaFree
 (define-cuda cudaFree (_fun _pointer -> _cudnn-status_t))
@@ -86,7 +115,22 @@
                    device-to-device)))
 
 ;;Define caller for cudaMemcpy
-(define-cuda cudaMemcpy (_fun _pointer _pointer _size _cuda-memcpy-kind_t -> _cudnn-status_t))
+(define-cuda cudaMemcpy (_fun _pointer _pointer _size _int -> _cuda-error_t))
+
+;;Wrapper for host to device copy
+(define (cuda-host-to-device-copy dst-prt src-ptr size)
+  (cudaMemcpy dst-prt src-ptr size 1))
+
+;;Wrapper to device to host copy
+(define (cuda-device-to-host-copy dst-prt src-ptr size)
+  (cudaMemcpy dst-prt src-ptr size 2))
+
+;;Wrapper to device to host copy
+(define (cuda-host-to-host-copy dst-prt src-ptr size)
+  (cudaMemcpy dst-prt src-ptr size 0))
+
+
+
 
 ;;typedef struct cudnnTensorStruct*          cudnnTensorDescriptor_t;
 (define-cpointer-type _cudnnTensorDescriptor_t (_cpointer '_cudnnTensorStruct))
@@ -140,10 +184,10 @@
 (define-cudann cudnnCreateTensorDescriptor (_fun _cudnnTensorDescriptor_t-ptr  -> _cudnn-status_t))
 
 (define-cudann cudnnSetTensorNdDescriptor (_fun _cudnnTensorDescriptor_t
-                                                _cudnn-data-type_t
+                                                _int;_cudnn-data-type_t
                                                 _int
-                                                _uintptr
-                                                _uintptr
+                                                _pointer;_uintptr
+                                                _pointer;_uintptr
                                                 -> _cudnn-status_t))
 
 
@@ -188,6 +232,19 @@
    _pointer ;; *beta
    _cudnnTensorDescriptor_t ;; dxDesc
    _pointer ;; *dx
+   -> _cudnn-status_t))
+
+;;Tensor addition for testing
+;; from cudnnStatus_t cudnnAddTensor( cudnnHandle_t handle, const void *alpha, const cudnnTensorDescriptor_t aDesc, const void *A, const void *beta, const cudnnTensorDescriptor_t cDesc, void *C)
+(define-cudann cudnnAddTensor
+  (_fun
+   _cudnnHandle_t
+   _pointer ;; *alpha
+   _cudnnTensorDescriptor_t ;; aDesc
+   _pointer ;; *A
+   _pointer ;; *beta
+   _cudnnTensorDescriptor_t ;; cDesc
+   _pointer ;; *C
    -> _cudnn-status_t))
 
 ;;;Activation functions
@@ -461,18 +518,44 @@
    _size    ;; reserve size in bytes
    -> _cudnn-status_t))
 
+(define (cuda-create-handle)
+  (let*
+      ([block (malloc 'atomic-interior 8)]
+       [hndlptr (cast block _pointer _cudnnHandle_t-pointer)]
+       [res (cudnnCreate hndlptr)])
+    hndlptr))
+
+(define (dref-handle ptr)
+  (let
+      ([pref (ptr-ref ptr _cudnnHandle_t)])
+    pref
+  ))
 
 
+(define (dref-ptr ptr)
+  (let
+      ([pref (ptr-ref ptr _pointer)])
+    pref
+  ))
 
+;; Allocate a tensor descriptor of the right type
+(define (cuda-create-tensor-descriptr-ptr size)
+  (let ([desc-ptr (malloc 'atomic-interior (ctype-sizeof _cudnnTensorDescriptor_t))])
+    (cast desc-ptr _pointer _cudnnTensorDescriptor_t-ptr)))
 
+(define (dref-tensor-desc-ptr ptr)
+  (let
+      ([pref (ptr-ref ptr _cudnnTensorDescriptor_t)])
+    pref
+  ))
 
 (define (create-lstm-layer nodes-in nodes-out)
   (print (string-append "Building a LSTM with "
                         (make-string nodes-in) " and "
                         (make-string nodes-out) " nodes out ")))
 
-
 (provide cudnnCreate cudnnDestroy _cudnnHandle_t-pointer
+	 cuda-create-handle
          cudaMalloc cudaFree cudaMemcpy cudaDeviceSynchronize
          cudnnCreateTensorDescriptor
 	 cudnnSetTensorNdDescriptor
@@ -495,8 +578,12 @@
 	 cudaEventCreate
 	 cudaEventRecord
 	 cudaEventSynchronize
+	 cudnnAddTensor
+	 cuda-host-to-device-copy
+	 cuda-device-to-host-copy
          _cudnnHandle_t _cuda-memcpy-kind_t
          _cudnnTensorDescriptor_t
+	 _cudnnTensorDescriptor_t-ptr
          _cudnnFilterDescriptor_t
 	 _cudnnDropoutDescriptor_t
 	 _cudnnRNNDescriptor_t
@@ -505,4 +592,10 @@
 	 _cudnn-rnn-input-mode_t
 	 _cudnn-rnn-mode_t
 	 _cudnn-tensor-format_t
+	 cuda-create-tensor-descriptr-ptr
+	 cuda-host-to-host-copy
+	 dref-tensor-desc-ptr
+	 dref-handle
+	 dref-ptr
+	 initGPUData
          _cudnn-status_t)

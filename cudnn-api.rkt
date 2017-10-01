@@ -14,10 +14,12 @@
  [_cudnn-rnn-input-mode_t CType]
  [_cudnn-rnn-mode_t CType]
  [_cudnn-tensor-format_t CType]
- [cudnnSetTensorNdDescriptor (CType Exact-Nonnegative-Integer
+ [dref-tensor-desc-ptr (CPointer -> CPointer)]
+ [cuda-create-tensor-descriptr-ptr (Exact-Nonnegative-Integer -> CPointer)]
+ [cudnnSetTensorNdDescriptor (CPointer Exact-Nonnegative-Integer
 				    Exact-Nonnegative-Integer
-				    CPointer CPointer -> CType)]
- [cudnnCreateTensorDescriptor (CPointer -> CType)]
+				    CPointer CPointer -> Symbol)]
+ [cudnnCreateTensorDescriptor (CPointer -> Symbol)]
  [cudnnCreateDropoutDescriptor (CType -> CType)]
  [cudnnSetRNNDescriptor (CType
   			 Exact-Nonnegative-Integer
@@ -87,6 +89,16 @@
    Exact-Nonnegative-Integer ;;_size    ;; reserve size in bytes
    -> CType
    )]
+
+ [cudnnAddTensor (CPointer ;; Handle
+		  CPointer ;; Pointer to the data for alpha
+		  CPointer ;; Tensor descriptor
+		  CPointer ;; Pointer to A
+		  CPointer ;; Pointer to beta
+		  CPointer ;; Descriptor for C
+		  CPointer ;; Pointer to C
+		  -> Symbol)]
+		  
  [cudnnRNNBackwardWeights
   (
    CType ;;_cudnnHandle_t
@@ -142,27 +154,27 @@
 (: TENSOR-DESC-SIZE  Exact-Nonnegative-Integer)
 (define TENSOR-DESC-SIZE (ctype-sizeof _cudnnTensorDescriptor_t))
 
-(: allocate-cudnn-tensor-desc-array (-> Exact-Nonnegative-Integer CType))
-(define (allocate-cudnn-tensor-desc-array size)
-  (let*
-      ([desc-ptr (malloc 'atomic-interior (* TENSOR-DESC-SIZE size))]
-       [res (cudnnCreateTensorDescriptor desc-ptr)])
-    res))
-
 (: get-tensor-desc-array (-> Exact-Nonnegative-Integer CPointer))
 (define (get-tensor-desc-array size)
-  (malloc 'atomic-interior (* TENSOR-DESC-SIZE size))
-  )
+  (print "Size of descriptor is " )
+  (print size )
+  (let ([ptr (malloc 'atomic-interior (* TENSOR-DESC-SIZE size))])
+    (print "Allocated ")
+    (print ptr)
+    ptr))
 
 (: get-tensor-desc-ptr (-> CPointer Exact-Nonnegative-Integer CPointer))
 (define (get-tensor-desc-ptr block offset)
   (ptr-add block offset _cudnnTensorDescriptor_t)
   )
 
-(: dref-tensor-desc-ptr (-> CPointer CType))
-(define (dref-tensor-desc-ptr block )
-  (cast (ptr-ref block _cudnnTensorDescriptor_t) CType)
-  )
+;(: dref-tensor-desc-ptr (-> CPointer CPointer))
+;(define (dref-tensor-desc-ptr block )
+;  (let
+;      ([pref (ptr-ref block _cudnnTensorDescriptor_t)])
+;    (print pref)
+;    (cast pref CPointer)
+;  ))
 
 
 
@@ -185,10 +197,11 @@
  cudnnRNNForwardTraining 
  cudnnRNNBackwardWeights
  cudnnRNNBackwardData
- allocate-cudnn-tensor-desc-array
+ cudnnAddTensor
  get-tensor-desc-array
  get-tensor-desc-ptr
  dref-tensor-desc-ptr
+ cuda-create-tensor-descriptr-ptr
  )
 
 

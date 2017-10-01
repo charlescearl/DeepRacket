@@ -4,7 +4,8 @@
 (unsafe-require/typed
  ffi/unsafe
  [#:opaque CPointer cpointer?]
- [#:opaque CType ctype?])
+ [#:opaque CType ctype?]
+ )
 
 (require/typed
   ffi/unsafe

@@ -58,7 +58,18 @@
   (for ([el : Integer arr]
 	[idx : Nonnegative-Integer (in-range (length arr))])
     (ptr-set! block _int idx el)))
-    
+
+(: print-float-block (CPointer Nonnegative-Integer -> Void))
+(define (print-float-block block size)
+  (for ([idx : Nonnegative-Integer (in-range size)])
+    (print (ptr-ref block _float idx))))
+
+(: print-double-block (CPointer Nonnegative-Integer -> Void))
+(define (print-double-block block size)
+  (for ([idx : Nonnegative-Integer (in-range size)])
+    (display (format "~a, " (ptr-ref block _double idx))))
+  (display (format "\n")))
+
 
 
 (provide
@@ -75,4 +86,6 @@
  copy-float-to-block
  copy-double-to-block
  copy-int-to-block
+ print-double-block
+ print-float-block
   )

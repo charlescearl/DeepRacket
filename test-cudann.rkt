@@ -28,10 +28,12 @@
    (test-case
        "Check creation of tensor descriptor"
      (let* ([desc-ptr (malloc 'atomic-interior (ctype-sizeof _cudnnTensorDescriptor_t))]
-            [res (cudnnCreateTensorDescriptor (cast desc-ptr _pointer _cudnnTensorDescriptor_t))]
-                 )
+            [res (cudnnCreateTensorDescriptor (cast desc-ptr _pointer _cudnnTensorDescriptor_t-ptr))]
+	    )
+       (print res)
        (check-equal? res 'success "Tensor Descriptor Creation")
-       ))))
+       ))
+   ))
 
 (define initialize-from-array-tests
   (test-suite

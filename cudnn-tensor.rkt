@@ -24,6 +24,7 @@
 		      [src-ptr : CPointer]
 		      [gpu-ptr : CPointer]
 		      [size : Exact-Nonnegative-Integer]
+		      ;; descriptive pointer
 		      [desc : CPointer]))
 
 ;; Tensor
@@ -42,7 +43,27 @@
 	       [resAlloc  (cudaMalloc ptr size)]
 	       )
     (display (format "Result of gpu allocation request is ~a" resAlloc))
-    ;(initGPUData ptr (* batch-size input-size sequence-size ) 1.0)
+    (let ([tens
+	   (cudnn-tensor arr
+			 (flarray-data (array->flarray arr))
+			 (array->cptr arr)
+			 (dref-ptr ptr)
+			 size
+			 ;; this should be an array of the descriptors
+			 (init-input-tensor-descriptor batch-size input-size sequence-size))])
+      (print "Initialized a tensor")
+      tens)))
+
+;; For simple tensors
+(: make-cudnn-simple-tensor (-> (Array Flonum) cudnn-tensor))
+(define (make-cudnn-simple-tensor arr)
+  (match-let* ([ptr (get-pointer)]
+	       [(vector batch-size input-size sequence-size) (array-shape arr)]
+	       [size (* batch-size input-size sequence-size DOUBLE-SIZE)]
+	       ;;cudaMalloc expects the address of the pointer
+	       [resAlloc  (cudaMalloc ptr size)]
+	       )
+    (display (format "Result of gpu allocation request is ~a" resAlloc))
     (let ([tens
 	   (cudnn-tensor arr
 			 (flarray-data (array->flarray arr))
@@ -135,7 +156,8 @@
   (display (format "Starting copy to GPU with:\n" ))
   (print-double-block (cudnn-tensor-src-ptr tensor) (flvector-length (cudnn-tensor-in-vect tensor)))
   (cudaDeviceSynchronize)
-  (cuda-host-to-device-copy (cudnn-tensor-gpu-ptr tensor) (cudnn-tensor-src-ptr tensor)  16)
+  (cuda-host-to-device-copy (cudnn-tensor-gpu-ptr tensor) (cudnn-tensor-src-ptr tensor)
+			    (cudnn-tensor-size tensor))
   ;;(cudnn-tensor-size tensor)
 
   )

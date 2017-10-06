@@ -526,39 +526,22 @@ extern "C" float runRNN(int seqLength, int numLayers,
 
    cudaErrCheck(cudaEventSynchronize(stop));
    cudaErrCheck(cudaEventElapsedTime(&timeBackward2, start, stop));
-   // w += dw
-   // cudnnErrCheck(cudnnAddTensor(cudnnHandle,
-   // 			       alpha_param,
-   // 			       dwDesc, 
-   // 			       dw,
-   // 			       beta_param,
-   // 			       wDesc, 
-   // 			       w));
    if (true) {
      float* testOutputdw;
-     //float* testOutputw;
+
      float testOutputw[weightsSize];
 
      float* testY;
      testOutputdw = (float*)malloc(weightsSize);
-     //testOutputw = (float*)malloc(weightsSize);
+
      testY = (float*)malloc(ysize);
      cudaErrCheck(cudaMemcpy(testY, y, ysize, cudaMemcpyDeviceToHost));
      
      cudaErrCheck(cudaMemcpy(testOutputdw, dw, weightsSize, cudaMemcpyDeviceToHost));
      cudaErrCheck(cudaMemcpy(testOutputw, w, weightsSize, cudaMemcpyDeviceToHost));
-     printf("w: %d, output: %d", sizeof(w), sizeof(testOutputw));
-     for (int j = 0;j<weightsSize;j++){
-            testOutputw[j] -= testOutputdw[j]*0.05;
-     }
-     //cudaErrCheck(cudaMemcpy(w, testOutputw, weightsSize, cudaMemcpyHostToDevice));
-     
-     for (int j = 0; j < 16 / sizeof(float); j++) {
-       printf("%d %d %f %f\n", i, j, y_train[j], testY[j]);
-     }
-      
+
      free(testOutputdw);
-     //free(testOutputw);
+
      free(testY);
    }   
  

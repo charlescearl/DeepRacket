@@ -33,6 +33,9 @@
 (define (get-int-array-block shape )
   (malloc 'atomic-interior (* INT-SIZE (foldl * 1 shape))))
 
+(define (get-int-pointer) : CPointer
+  (malloc 'atomic-interior INT-SIZE ))
+
 (: get-float-array-block ((Listof Nonnegative-Integer) -> CPointer))
 (define (get-float-array-block shape )
   (malloc 'atomic-interior (* FLOAT-SIZE (foldl * 1 shape))))
@@ -58,6 +61,10 @@
   (for ([el : Integer arr]
 	[idx : Nonnegative-Integer (in-range (length arr))])
     (ptr-set! block _int idx el)))
+
+(: set-int-array-ref (CPointer Positive-Integer Integer -> Void))
+(define (set-int-array-ref block idx val)
+  (ptr-set! block _int idx val))
 
 (: print-float-block (CPointer Nonnegative-Integer -> Void))
 (define (print-float-block block size)
@@ -88,4 +95,6 @@
  copy-int-to-block
  print-double-block
  print-float-block
+ get-int-pointer
+ set-int-array-ref
   )

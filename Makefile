@@ -177,7 +177,9 @@ all: build
 
 TLIB = libgpumem.so
 
-build: $(TLIB)
+RNNLIB = librnn.so
+
+build: $(TLIB) $(RNNLIB)
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -188,7 +190,12 @@ endif
 
 OBJ = gpu_mem.o
 
+RNNOBJ = rnn_api.o
+
 $(TLIB): $(OBJ)
+	$(EXEC) $(NVCC)  $(ALL_LDFLAGS) $(GENCODE_FLAGS) --shared -o $@ $+ $(LIBRARIES)
+
+$(RNNLIB): $(RNNOBJ)
 	$(EXEC) $(NVCC)  $(ALL_LDFLAGS) $(GENCODE_FLAGS) --shared -o $@ $+ $(LIBRARIES)
 
 %.o: %.cu
@@ -197,5 +204,6 @@ $(TLIB): $(OBJ)
 clean:
 	rm -rf *o
 	rm -rf libgpumem.so
+	rm -rf librnn.o
 
 clobber: clean

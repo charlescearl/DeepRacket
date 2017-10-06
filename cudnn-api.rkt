@@ -14,78 +14,88 @@
  [_cudnn-rnn-input-mode_t CType]
  [_cudnn-rnn-mode_t CType]
  [_cudnn-tensor-format_t CType]
- [dref-tensor-desc-ptr (CPointer -> CPointer)]
  [cuda-create-tensor-descriptr-ptr (Exact-Nonnegative-Integer -> CPointer)]
+ [dref-tensor-desc-ptr (CPointer -> CPointer)]
+ [cuda-create-filter-descriptr-ptr (Exact-Nonnegative-Integer -> CPointer)]
+ [dref-filter-desc-ptr (CPointer -> CPointer)]
+ [cuda-create-rnn-descriptr-ptr (Exact-Nonnegative-Integer -> CPointer)]
+ [dref-rnn-desc-ptr (CPointer -> CPointer)]
+ [cuda-create-dropout-descriptr-ptr (Exact-Nonnegative-Integer -> CPointer)]
+ [dref-dropout-desc-ptr (CPointer -> CPointer)]
+ [cudnnSetDropoutDescriptor (CPointer CPointer Flonum
+				      CPointer Positive-Integer
+				      Positive-Integer -> Symbol)]
  [cudnnSetTensorNdDescriptor (CPointer Exact-Nonnegative-Integer
 				    Exact-Nonnegative-Integer
 				    CPointer CPointer -> Symbol)]
  [cudnnCreateTensorDescriptor (CPointer -> Symbol)]
- [cudnnCreateDropoutDescriptor (CType -> CType)]
- [cudnnSetRNNDescriptor (CType
+ [cudnnCreateDropoutDescriptor (CPointer -> Symbol)]
+ [cudnnSetRNNDescriptor (CPointer
   			 Exact-Nonnegative-Integer
   			 Exact-Nonnegative-Integer
-  			 CType
-  			 CType
-  			 CType
-  			 CType
-  			 -> CType)]
- [cudnnCreateRNNDescriptor (CType -> CType)]
- [cudnnCreateFilterDescriptor (CType -> CType)]
- [cudnnDestroyFilterDescriptor (CType -> CType)]
- [cudnnSetFilterNdDescriptor (CType
-  			      CType
-  			      CType
+  			 CPointer
+  			 Exact-Nonnegative-Integer
+  			 Exact-Nonnegative-Integer
+  			 Exact-Nonnegative-Integer
+  			 -> Symbol)]
+ [cudnnCreateRNNDescriptor (CPointer -> Symbol)]
+ [cudnnCreateFilterDescriptor (CPointer -> Symbol)]
+ [cudnnDestroyFilterDescriptor (CPointer -> Symbol)]
+ [cudnnDestroyDropoutDescriptor (CPointer -> Symbol)]
+ [cudnnSetFilterNdDescriptor (CPointer
   			      Exact-Nonnegative-Integer
-  			      CType
-  			      -> CType)]
- [cudnnGetRNNParamsSize (CType CType CType
-  				  CType CType
-  				  -> CType)]
- [cudnnDropoutGetStatesSize (CType CType -> CType)]
- [cudnnGetRNNWorkspaceSize (CType CType Exact-Nonnegative-Integer
-				  CType CType -> CType)]
- [cudnnGetRNNTrainingReserveSize (CType CType Exact-Nonnegative-Integer
-					CType CType -> CType)]
- [cudnnGetRNNLinLayerMatrixParams (CType
-				   CType
+  			      Exact-Nonnegative-Integer
+  			      Exact-Nonnegative-Integer
+  			      CPointer
+  			      -> Symbol)]
+ [cudnnGetRNNParamsSize (CPointer CPointer CPointer
+  				  CPointer Exact-Nonnegative-Integer
+  				  -> Symbol)]
+ [cudnnDropoutGetStatesSize (CPointer CPointer -> Symbol)]
+ [cudnnGetRNNWorkspaceSize (CPointer CPointer Exact-Nonnegative-Integer
+				  CPointer CPointer -> Symbol)]
+ [cudnnGetRNNTrainingReserveSize (CPointer CPointer Exact-Nonnegative-Integer
+					CPointer CPointer -> Symbol)]
+ [cudnnGetRNNLinLayerMatrixParams (CPointer
+				   CPointer
 				   Exact-Nonnegative-Integer
-				   CType
-				   CType
-				   CType
+				   CPointer
+				   CPointer
+				   CPointer
 				   Exact-Nonnegative-Integer
-				   CType
-				   CType
-				   -> CType)]
- [cudnnGetRNNLinLayerBiasParams (CType
-				   CType
+				   CPointer
+				   CPointer
+				   -> Symbol)]
+ [cudnnGetRNNLinLayerBiasParams (CPointer
+				   CPointer
 				   Exact-Nonnegative-Integer
-				   CType
-				   CType
-				   CType
+				   CPointer
+				   CPointer
+				   CPointer
 				   Exact-Nonnegative-Integer
-				   CType
-				   CType
-				   -> CType)]
- [cudnnRNNForwardTraining ( CType ;; the handle
-   CType ;;_cudnnRNNDescriptor_t
+				   CPointer
+				   CPointer
+				   -> Symbol)]
+ [cudnnRNNForwardTraining ( CPointer ;; the handle
+   CPointer ;;_cudnnRNNDescriptor_t
    Exact-Nonnegative-Integer ;; _int ;; sequence length
-   CType ;;_cudnnTensorDescriptor_t ;; x descriptor
-   CType ;;_pointer ;; *x
-   CType ;;_cudnnTensorDescriptor_t ;; h descriptor
-   CType ;;_pointer ;; *hx
-   CType ;;_cudnnTensorDescriptor_t ;; c descriptor
-   CType ;;_pointer ;; *cx
-   CType ;;_cudnnFilterDescriptor_t ;; w descriptor
-   CType ;;_pointer ;; pointer to w
-   CType ;;_cudnnTensorDescriptor_t ;; y descriptor
-   CType ;;_pointer ;; pointer to y
-   CType ;;_cudnnTensorDescriptor_t ;; hy descriptor
-   CType ;;_pointer ;; pointer to hy
-   CType ;;_cudnnTensorDescriptor_t ;; cy descriptor
-   CType ;; _pointer ;; pointer to cy
-   CType ;;_pointer ;; pointer to workspace
+   CPointer ;;_cudnnTensorDescriptor_t ;; x descriptor
+   CPointer ;;_pointer ;; *x
+   CPointer ;;_cudnnTensorDescriptor_t ;; h descriptor
+   CPointer ;;_pointer ;; *hx
+   CPointer ;;_cudnnTensorDescriptor_t ;; c descriptor
+   CPointer ;;_pointer ;; *cx
+   CPointer ;;_cudnnFilterDescriptor_t ;; w descriptor
+   CPointer ;;_pointer ;; pointer to w
+   CPointer ;;_cudnnTensorDescriptor_t ;; y descriptor
+   CPointer ;;_pointer ;; pointer to y
+   CPointer ;;_cudnnTensorDescriptor_t ;; hy descriptor
+   CPointer ;;_pointer ;; pointer to hy
+   CPointer ;;_cudnnTensorDescriptor_t ;; cy descriptor
+   CPointer ;; _pointer ;; pointer to cy
+   CPointer ;;_pointer ;; pointer to workspace
    Exact-Nonnegative-Integer  ;;_size    ;; workspace size in bytes
-   CType ;; _pointer ;; pointer to reserve space
+   CPointer ;; _pointer ;; pointer to reserve space
    Exact-Nonnegative-Integer ;;_size    ;; reserve size in bytes
    -> CType
    )]
@@ -101,53 +111,53 @@
 		  
  [cudnnRNNBackwardWeights
   (
-   CType ;;_cudnnHandle_t
-   CType ;;_cudnnRNNDescriptor_t
+   CPointer ;;_cudnnHandle_t
+   CPointer ;;_cudnnRNNDescriptor_t
    Exact-Nonnegative-Integer  ;;_int ;; sequence length
-   CType ;;_cudnnTensorDescriptor_t ;; x descriptor
-   CType ;;_pointer ;; *x
-   CType ;;_cudnnTensorDescriptor_t ;; hx descriptor
-   CType ;;_pointer ;; *hx
-   CType ;;_cudnnTensorDescriptor_t ;; y descriptor
-   CType ;;_pointer ;; *y
-   CType ;;_pointer ;; pointer to workspace
+   CPointer ;;_cudnnTensorDescriptor_t ;; x descriptor
+   CPointer ;;_pointer ;; *x
+   CPointer ;;_cudnnTensorDescriptor_t ;; hx descriptor
+   CPointer ;;_pointer ;; *hx
+   CPointer ;;_cudnnTensorDescriptor_t ;; y descriptor
+   CPointer ;;_pointer ;; *y
+   CPointer ;;_pointer ;; pointer to workspace
    Exact-Nonnegative-Integer  ;;_size    ;; workspace size in bytes
-   CType ;;_cudnnFilterDescriptor_t ;; dw descriptor
-   CType ;;_pointer ;; pointer to dw
-   CType ;;_pointer ;; pointer to reserve space
+   CPointer ;;_cudnnFilterDescriptor_t ;; dw descriptor
+   CPointer ;;_pointer ;; pointer to dw
+   CPointer ;;_pointer ;; pointer to reserve space
    Exact-Nonnegative-Integer  ;;_size    ;; reserve size in bytes
-   -> CType ;; _cudnn-status_t
+   -> Symbol;; _cudnn-status_t
    )]
  [cudnnRNNBackwardData
   (
-   CType ;;_cudnnHandle_t
-   CType ;;_cudnnRNNDescriptor_t
+   CPointer ;;_cudnnHandle_t
+   CPointer ;;_cudnnRNNDescriptor_t
    Exact-Nonnegative-Integer  ;;_int ;; sequence length
-   CType ;;_cudnnTensorDescriptor_t ;; y descriptor
-   CType ;;_pointer ;; *y
-   CType ;;_cudnnTensorDescriptor_t ;; dy descriptor
-   CType ;;_pointer ;; *dy
-   CType ;;_cudnnTensorDescriptor_t ;; dhy descriptor
-   CType ;;_pointer ;; *dhy
-   CType ;;_cudnnTensorDescriptor_t ;; dcy descriptor
-   CType ;;_pointer ;; *dcy
-   CType ;;_cudnnFilterDescriptor_t ;; w descriptor
-   CType ;;_pointer ;; pointer to w
-   CType ;;_cudnnTensorDescriptor_t ;; hx descriptor
-   CType ;;_pointer ;; pointer to hx
-   CType ;;_cudnnTensorDescriptor_t ;; cx descriptor
-   CType ;;_pointer ;; pointer to cx
-   CType ;;_cudnnTensorDescriptor_t ;; dx descriptor
-   CType ;;_pointer ;; pointer to dx
-   CType ;;_cudnnTensorDescriptor_t ;; dhx descriptor
-   CType ;;_pointer ;; pointer to dhx
-   CType ;;_cudnnTensorDescriptor_t ;; dcx descriptor
-   CType ;;_pointer ;; pointer to dcx
-   CType ;;_pointer ;; pointer to workspace
+   CPointer ;;_cudnnTensorDescriptor_t ;; y descriptor
+   CPointer ;;_pointer ;; *y
+   CPointer ;;_cudnnTensorDescriptor_t ;; dy descriptor
+   CPointer ;;_pointer ;; *dy
+   CPointer ;;_cudnnTensorDescriptor_t ;; dhy descriptor
+   CPointer ;;_pointer ;; *dhy
+   CPointer ;;_cudnnTensorDescriptor_t ;; dcy descriptor
+   CPointer ;;_pointer ;; *dcy
+   CPointer ;;_cudnnFilterDescriptor_t ;; w descriptor
+   CPointer ;;_pointer ;; pointer to w
+   CPointer ;;_cudnnTensorDescriptor_t ;; hx descriptor
+   CPointer ;;_pointer ;; pointer to hx
+   CPointer ;;_cudnnTensorDescriptor_t ;; cx descriptor
+   CPointer ;;_pointer ;; pointer to cx
+   CPointer ;;_cudnnTensorDescriptor_t ;; dx descriptor
+   CPointer ;;_pointer ;; pointer to dx
+   CPointer ;;_cudnnTensorDescriptor_t ;; dhx descriptor
+   CPointer ;;_pointer ;; pointer to dhx
+   CPointer ;;_cudnnTensorDescriptor_t ;; dcx descriptor
+   CPointer ;;_pointer ;; pointer to dcx
+   CPointer ;;_pointer ;; pointer to workspace
    Exact-Nonnegative-Integer  ;;_size    ;; workspace size in bytes
-   CType ;;_pointer ;; pointer to reserve space
+   CPointer ;;_pointer ;; pointer to reserve space
    Exact-Nonnegative-Integer  ;;_size    ;; reserve size in bytes
-   -> CType ;; _cudnn-status_t)
+   -> Symbol ;; _cudnn-status_t)
    )]
 )
 
@@ -168,15 +178,6 @@
   (ptr-add block offset _cudnnTensorDescriptor_t)
   )
 
-;(: dref-tensor-desc-ptr (-> CPointer CPointer))
-;(define (dref-tensor-desc-ptr block )
-;  (let
-;      ([pref (ptr-ref block _cudnnTensorDescriptor_t)])
-;    (print pref)
-;    (cast pref CPointer)
-;  ))
-
-
 
 ;; (provide tensor rnn ptr-array-ref array->cptr)
 (provide
@@ -188,8 +189,10 @@
  cudnnCreateFilterDescriptor 
  cudnnDestroyFilterDescriptor 
  cudnnSetFilterNdDescriptor 
- cudnnGetRNNParamsSize 
- cudnnDropoutGetStatesSize 
+ cudnnGetRNNParamsSize
+ cudnnSetDropoutDescriptor
+ cudnnDropoutGetStatesSize
+ cudnnDestroyDropoutDescriptor
  cudnnGetRNNWorkspaceSize 
  cudnnGetRNNTrainingReserveSize 
  cudnnGetRNNLinLayerMatrixParams 
@@ -200,8 +203,14 @@
  cudnnAddTensor
  get-tensor-desc-array
  get-tensor-desc-ptr
- dref-tensor-desc-ptr
  cuda-create-tensor-descriptr-ptr
+ dref-tensor-desc-ptr
+ cuda-create-dropout-descriptr-ptr
+ dref-dropout-desc-ptr
+ cuda-create-rnn-descriptr-ptr
+ dref-rnn-desc-ptr
+ cuda-create-filter-descriptr-ptr
+ dref-filter-desc-ptr
  )
 
 

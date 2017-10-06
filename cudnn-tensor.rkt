@@ -127,6 +127,14 @@
       tensor-desc)))
 
 
+(: make-cudnn-layer-tensor (-> Index Index
+			       Index cudnn-tensor))
+(define (make-cudnn-layer-tensor num-layers hidden-size mini-batch)
+  (make-cudnn-simple-tensor
+   (make-array
+    (ann ((inst vector Index) num-layers hidden-size mini-batch) In-Indexes)
+    1.0)))
+
 ;; Allocate an array of tensor descriptors for each training iteration
 (: init-layer-tensor-descriptor (-> Nonnegative-Integer
 				    Nonnegative-Integer
@@ -207,4 +215,8 @@
  init-simple-tensor-descriptor
  cudnn-tensor-src-ptr
  cudnn-tensor-size
+ cudnn-tensor-desc
+ cudnn-tensor?
+ make-cudnn-layer-tensor
+ cudnn-tensor-gpu-ptr
  )

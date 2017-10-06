@@ -11,6 +11,7 @@
  [cuda-create-handle ( -> CPointer)]
  [initGPUData (CPointer Exact-Nonnegative-Integer Flonum -> Void)]
  [dref-handle (CPointer -> CPointer)]
+ [dref-int-ptr (CPointer -> Positive-Integer)]
  [dref-ptr (CPointer -> CPointer)]
  [cudaDeviceSynchronize ( -> Symbol)]
  [cudaEventCreate (CType -> CType)]
@@ -53,5 +54,6 @@
  dref-handle
  dref-ptr
  initGPUData
+ dref-int-ptr
  )
 

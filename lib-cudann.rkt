@@ -5,18 +5,33 @@
  racket/path
  ffi/unsafe
  ffi/unsafe/define)
+(require yaml)
 
 (define gpu-mem-path (build-path "libgpumem"))
 
+(define rnn-api-path (build-path "librnn"))
+
+;; local file ./config.yaml contains path of
+;; cuda-lib and cudnn-lib like:
+;; cuda-lib-path: /usr/local/cuda-8.0/targets/x86_64-linux/lib/libcudart
+;; cudnn-lib-path: /usr/local/nvidia/cuda/lib64/libcudnn
+(define config-hash (with-input-from-file
+			"config.yaml"
+		      (lambda () (read-yaml))))
+
 (define-ffi-definer define-gpu-mem (ffi-lib gpu-mem-path))
+
+(define-ffi-definer define-rnn-api (ffi-lib rnn-api-path))
 
 (define-gpu-mem initGPUData (_fun _pointer _int _float -> _void))
 
-(define cudann-path (build-path "/" "media" "Hadoop2" "nvidia" "cuda" "lib64" "libcudnn"))
+(define-rnn-api runRNN (_fun _int _int _int _int _int _float _int _int -> _float))
+
+(define cudann-path (hash-ref config-hash "cudnn-lib-path" ))
 
 (define-ffi-definer define-cudann (ffi-lib cudann-path))
 
-(define cuda-path (build-path "/" "usr" "local" "cuda-8.0" "targets" "x86_64-linux" "lib" "libcudart"))
+(define cuda-path (hash-ref config-hash "cuda-lib-path" ))
 
 (define-ffi-definer define-cuda (ffi-lib cuda-path))
 ;;See https://www.cs.cmu.edu/afs/cs/academic/class/15668-s11/www/cuda-doc/html/group__CUDART__TYPES_ge15d9c8b7a240312b533d6122558085a.html#ge15d9c8b7a240312b533d6122558085a
@@ -24,8 +39,8 @@
 (define-cpointer-type _cudaStream_t (_cpointer '_CUstream_st))
 					;(define _cudaStream_t (_cpointer '_CUstream_st))
 (define-cpointer-type _cudaStream_t-pointer (_cpointer '_cudaStream_t))
-(define _cudaEvent_t (_cpointer '_CUevent_st))
-(define _cudaEvent_t-pointer (_cpointer '_cudaEvent_t))
+(define-cpointer-type _cudaEvent_t (_cpointer '_CUevent_st))
+(define-cpointer-type _cudaEvent_t-pointer (_cpointer '_cudaEvent_t))
 (define-cpointer-type _cudnnHandle_t (_cpointer '_cudnnContext))
 (define-cpointer-type _cudnnHandle_t-pointer (_cpointer '_cudnnHandle_t))
 ;; Using cudnn.torch as a guide https://github.com/soumith/cudnn.torch
@@ -142,6 +157,7 @@
 (define _cudnnPoolingDescriptor_t (_cpointer '_cudnnPoolingStruct))
 ;; ;; typedef struct cudnnFilterStruct*          cudnnFilterDescriptor_t
 (define-cpointer-type _cudnnFilterDescriptor_t (_cpointer '_cudnnFilterStruct))
+(define-cpointer-type _cudnnFilterDescriptor_t-ptr (_cpointer '_cudnnFilterDescriptor_t))
 
 ;; typedef struct cudnnLRNStruct*             cudnnLRNDescriptor_t;
 (define _cudnnLRNDescriptor_t (_cpointer '_cudnnLRNStruct))
@@ -177,7 +193,7 @@
 						_cudnn-data-type_t
 						_cudnn-tensor-format_t
 						_int
-						_uintptr
+						_pointer
 						-> _cudnn-status_t))
 
 ;;Create an instance of a generic Tensor descriptor
@@ -258,6 +274,7 @@
 ;; The Dropout structure
 ;(define _cudnnDropoutDescriptor_t (_cpointer '_cudnnDropoutStruct))
 (define-cpointer-type _cudnnDropoutDescriptor_t (_cpointer '_cudnnDropoutStruct))
+(define-cpointer-type _cudnnDropoutDescriptor_t-ptr (_cpointer '_cudnnDropoutDescriptor_t))
 ;;Create Dropout descriptor
 (define-cudann cudnnCreateDropoutDescriptor (_fun _cudnnDropoutDescriptor_t -> _cudnn-status_t))
 
@@ -270,7 +287,7 @@
 (define-cudann cudnnDropoutGetReserveSpaceSize (_fun _cudnnHandle_t _size -> _cudnn-status_t))
 
 ;;helper function to determine size of the states to be passed to cudnnSetDropoutDescriptor
-(define-cudann cudnnDropoutGetStatesSize (_fun _cudnnHandle_t _uintptr -> _cudnn-status_t))
+(define-cudann cudnnDropoutGetStatesSize (_fun _cudnnHandle_t _pointer -> _cudnn-status_t))
 
 ;;Set parameters of the Dropout Descriptor
 (define-cudann
@@ -336,6 +353,8 @@
 
 ;; The RNN structure
 (define-cpointer-type _cudnnRNNDescriptor_t (_cpointer '_cudnnRNNStruct))
+(define-cpointer-type _cudnnRNNDescriptor_t-ptr (_cpointer '_cudnnRNNDescriptor_t))
+
 
 ;;Create RNN descriptor
 (define-cudann cudnnCreateRNNDescriptor (_fun _cudnnRNNDescriptor_t -> _cudnn-status_t))
@@ -362,7 +381,7 @@
    _cudnnRNNDescriptor_t
    _int ;; sequence length
    _cudnnTensorDescriptor_t ;; x descriptor
-   _uintptr ;; pointer to size
+   _pointer ;; pointer to size
    -> _cudnn-status_t))
 
 ;;Get training reserve size
@@ -372,7 +391,7 @@
    _cudnnRNNDescriptor_t
    _int ;; sequence length
    _cudnnTensorDescriptor_t ;; x descriptor
-   _uintptr ;; pointer to size
+   _pointer ;; pointer to size
    -> _cudnn-status_t))
 
 ;;Get params size
@@ -381,7 +400,7 @@
    _cudnnHandle_t
    _cudnnRNNDescriptor_t
    _cudnnTensorDescriptor_t ;; x descriptor
-   _uintptr ;; pointer to size
+   _pointer ;; pointer to size
    _cudnn-data-type_t
    -> _cudnn-status_t))
 
@@ -539,6 +558,8 @@
   ))
 
 ;; Allocate a tensor descriptor of the right type
+;; Basically need an allocator for each of the
+;; descriptor pointer types -- create and dref
 (define (cuda-create-tensor-descriptr-ptr size)
   (let ([desc-ptr (malloc 'atomic-interior (ctype-sizeof _cudnnTensorDescriptor_t))])
     (cast desc-ptr _pointer _cudnnTensorDescriptor_t-ptr)))
@@ -547,7 +568,56 @@
   (let
       ([pref (ptr-ref ptr _cudnnTensorDescriptor_t)])
     pref
-  ))
+    ))
+
+;;create & dref for dropout
+(define (cuda-create-dropout-descriptr-ptr size)
+  (print (format "Size of drop out is ~a" (ctype-sizeof _cudnnDropoutDescriptor_t)))
+  (let ([desc-ptr (malloc 'atomic-interior (ctype-sizeof _cudnnDropoutDescriptor_t))])
+    (cast desc-ptr _pointer _cudnnDropoutDescriptor_t)))
+
+(define (dref-dropout-desc-ptr ptr)
+  (let
+      ([pref (ptr-ref ptr _cudnnDropoutDescriptor_t)])
+    pref
+    ))
+
+
+;;create & dref for rnn
+(define (cuda-create-rnn-descriptr-ptr size)
+  (let ([desc-ptr (malloc 'atomic-interior (ctype-sizeof  _cudnnRNNDescriptor_t))])
+    (cast desc-ptr _pointer  _cudnnRNNDescriptor_t-ptr)))
+
+(define (dref-rnn-desc-ptr ptr)
+  (let
+      ([pref (ptr-ref ptr  _cudnnRNNDescriptor_t)])
+    pref
+    ))
+
+
+;;create & dref for filter
+(define (cuda-create-filter-descriptr-ptr size)
+  (let ([desc-ptr (malloc 'atomic-interior (ctype-sizeof  _cudnnFilterDescriptor_t))])
+    (cast desc-ptr _pointer  _cudnnFilterDescriptor_t-ptr)))
+
+(define (dref-filter-desc-ptr ptr)
+  (let
+      ([pref (ptr-ref ptr  _cudnnFilterDescriptor_t)])
+    pref
+    ))
+
+(define (dref-int-ptr ptr)
+  (let
+      ([pref (ptr-ref ptr _int)])
+    pref
+    ))
+  
+
+
+;;create & dref lin layer
+
+;;create & dref lin layer bias
+
 
 (define (create-lstm-layer nodes-in nodes-out)
   (print (string-append "Building a LSTM with "
@@ -571,6 +641,7 @@
          cudnnGetRNNLinLayerBiasParams
          cudnnCreateFilterDescriptor
 	 cudnnDestroyFilterDescriptor
+	 cudnnDestroyDropoutDescriptor
 	 cudnnSetFilterNdDescriptor
 	 cudnnRNNForwardTraining
 	 cudnnRNNBackwardWeights
@@ -585,17 +656,29 @@
          _cudnnTensorDescriptor_t
 	 _cudnnTensorDescriptor_t-ptr
          _cudnnFilterDescriptor_t
+	 _cudnnFilterDescriptor_t-ptr
 	 _cudnnDropoutDescriptor_t
+	 _cudnnDropoutDescriptor_t-ptr
 	 _cudnnRNNDescriptor_t
+	 _cudnnRNNDescriptor_t-ptr
          _cudaEvent_t
+	 _cudaEvent_t-pointer
 	 _cudnn-data-type_t
 	 _cudnn-rnn-input-mode_t
 	 _cudnn-rnn-mode_t
 	 _cudnn-tensor-format_t
 	 cuda-create-tensor-descriptr-ptr
+	 cuda-create-filter-descriptr-ptr
+	 cuda-create-dropout-descriptr-ptr
+	 cuda-create-rnn-descriptr-ptr
 	 cuda-host-to-host-copy
 	 dref-tensor-desc-ptr
+	 dref-dropout-desc-ptr
+	 dref-filter-desc-ptr
+	 dref-rnn-desc-ptr
 	 dref-handle
 	 dref-ptr
+	 dref-int-ptr
 	 initGPUData
+	 runRNN
          _cudnn-status_t)

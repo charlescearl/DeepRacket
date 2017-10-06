@@ -1,0 +1,2 @@
+cuda-lib-path: /usr/local/cuda-8.0/targets/x86_64-linux/lib/libcudart
+cudnn-lib-path: /usr/local/nvidia/cuda/lib64/libcudnn

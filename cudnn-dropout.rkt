@@ -6,7 +6,6 @@
 (require "ffi-functional.rkt")
 
 ;;;The dropout object
-;;;TODO: notion of a workspace and timing functions
 
 (struct cudnn-dropout
   ([desc : CPointer]

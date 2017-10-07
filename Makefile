@@ -175,6 +175,9 @@ endif
 # Target rules
 all: build
 
+simpledynet:
+	clang  -fPIC -funroll-loops -fno-finite-math-only -Wall -Wno-missing-braces -std=c++11 -Ofast -g -march=native -I/usr/local/include/eigen3  -I/Users/charlescearl/dynet -L/Users/charlescearl/dynet/build/dynet -ldynet -lstdc++ -dynamiclib -o libdynetsimple.dylib -dy ./simple_dynet.cpp
+
 TLIB = libgpumem.so
 
 RNNLIB = librnn.so

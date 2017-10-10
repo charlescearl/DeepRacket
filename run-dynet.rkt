@@ -1,5 +1,4 @@
 #lang racket
-
 (require
  "simple-dynet-api.rkt")
 
@@ -28,21 +27,19 @@
        [loss 0.0]
        )
     (for ([epoch (in-range 30)])
-      (for* ([mi (in-range 4)]
-     	     [x1 (modulo mi 2)]
-     	     [x2 (modulo (quotient mi 2) 2)])
-	 (if (eq? x1 1)
-	     (set_dynet_vptr xval_ptr 0 1.0)
-	     (set_dynet_vptr xval_ptr 1 -1.0))
-	 (if (not (eq? x2 x1))
-	      (set_dynet_vptr yval_ptr 0 1.0)
-	      (set_dynet_vptr yval_ptr 0 -1.0)
-	      )
-	 (set! loss (+ loss (get_scalar_loss cg loss_expr)))
-	 
-	 (do_backward_loss cg loss_expr)
-	 (update_params sgd 1.0))
+      (for* ([mi (in-range 4)])
+	(let*
+	    (
+	     [x1 (modulo mi 2)]
+	     [x2 (modulo (quotient mi 2) 2)]
+	     [input1 (if (eq? x1 1) 1.0 -1.0)]
+	     [input2 (if (eq? x2 1) 1.0 -1.0)]
+	     [output (if (not (eq? x2 x1)) 1.0 -1.0)])
+	  (set_dynet_vptr xval_ptr 0 input1)
+	  (set_dynet_vptr xval_ptr 1 input2)
+	  (set_dynet_vptr yval_ptr 0 output)
+	  (set! loss (+ loss (get_scalar_loss cg loss_expr)))
+	  (do_backward_loss cg loss_expr)
+	  (update_params sgd 1.0)))
       (set! loss (/ loss 4.0))
       (display (format "Current loss is: ~a\n" loss)))))
-
-

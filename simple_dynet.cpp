@@ -85,6 +85,10 @@ extern "C" dynet::real * get_dynet_vect_ptr(vector<dynet::real>* x_values ){
   //return new Expression(cg, x.i);
 }
 
+extern "C" dynet::real get_dynet_vect_val(vector<dynet::real>* x_values, int idx ){
+  return x_values->at(idx);
+}
+
 extern "C" vector<dynet::real>* get_dynet_vector(int size){
   return new vector<dynet::real>(size);
 }
@@ -141,59 +145,7 @@ extern "C" dynet::real * get_vect_pointer(){
   return x_values.data();
 }
 
-
-
 extern "C" int update_params(SimpleSGDTrainer * sgd, float rate){
   sgd->update(rate);
   return 0;
-}
-
-extern "C" void start_dynet(){
-  int argc = 0;
-  char **argv;
-  dynet::initialize(argc, argv);
-  const unsigned ITERATIONS = 30;
-
-  // ParameterCollection (all the model parameters).
-  ParameterCollection *m = new ParameterCollection();
-  SimpleSGDTrainer sgd(*m);
-
-  const unsigned HIDDEN_SIZE = 8;
-  Parameter p_W = m->add_parameters({HIDDEN_SIZE, 2});
-  Parameter p_b = m->add_parameters({HIDDEN_SIZE});
-  Parameter p_V = m->add_parameters({1, HIDDEN_SIZE});
-  Parameter p_a = m->add_parameters({1});
-  ComputationGraph cg;
-  Expression W = parameter(cg, p_W);
-  Expression b = parameter(cg, p_b);
-  Expression V = parameter(cg, p_V);
-  Expression a = parameter(cg, p_a);
-
-  // // Set x_values to change the inputs to the network.
-  vector<dynet::real> x_values(2);
-  Expression x = input(cg, {2}, &x_values);
-  dynet::real y_value;  // Set y_value to change the target output.
-  Expression y = input(cg, &y_value);
-
-  Expression h = tanh(W*x + b);
-  Expression y_pred = V*h + a;
-  Expression loss_expr = squared_distance(y_pred, y);
-
-  for (unsigned iter = 0; iter < ITERATIONS; ++iter) {
-    double loss = 0;
-    for (unsigned mi = 0; mi < 4; ++mi) {
-      bool x1 = mi % 2;
-      bool x2 = (mi / 2) % 2;
-      x_values[0] = x1 ? 1 : -1;
-      x_values[1] = x2 ? 1 : -1;
-      y_value = (x1 != x2) ? 1 : -1;
-      loss += as_scalar(cg.forward(loss_expr));
-      cg.backward(loss_expr);
-      sgd.update(1.0);  // 1.0 means don't scale the gradient.
-    }
-    loss /= 4;
-    cerr << "E = " << loss << endl;
-  }
-
-  printf("I initialized dynet");
 }

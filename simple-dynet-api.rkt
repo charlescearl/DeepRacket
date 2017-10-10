@@ -9,9 +9,6 @@
 ;; Load POC library code
 (define-ffi-definer define-dynet (ffi-lib "./libdynetsimple"))
 
-;; Run the worker
-(define-dynet start_dynet (_fun -> _void))
-
 ;; ;; Initialize memory
 (define-dynet init_dynet (_fun -> _void))
 
@@ -72,17 +69,26 @@
 
 (define-dynet get_dynet_vector ( _fun _int -> _dynet_vector_pointer))
 
-;;set_dynet_vect(vector<dynet::real> * vtr, int idx, double val)
-;(define-dynet set_dynet_vect ( _fun _dynet_vector_pointer _int _double -> void))
-;; ;;Update layer parameters
 (define-dynet update_params (_fun _sgd_trainer_pointer _float -> _int))
 
 (define-dynet get_vect_pointer (_fun -> _real_ptr))
+
+(define-dynet get_dynet_vect_val (_fun _dynet_vector_pointer _uint -> _real))
 
 (define-dynet get_dynet_vect_ptr (_fun _dynet_vector_pointer -> _real_ptr))
 
 (define (set_dynet_vptr ptr idx val)
   (ptr-set! ptr _real idx val))
+(module+ test
+  (require rackunit)
+  (let* ([yval (get_dynet_vector 1)]
+         [yval-ptr (get_dynet_vect_ptr yval)])
+    (display "Testing setting of vector pointers.\n")
+    (set_dynet_vptr yval-ptr 0 1.0)
+    (check-equal? (get_dynet_vect_val yval 0) 1.0)
+    (set_dynet_vptr yval-ptr 0 11.0)
+    (check-equal? (get_dynet_vect_val yval 0) 11.0)
+    (display "Setting vector values works ok.\n")))
 
  (provide
   init_dynet
@@ -105,6 +111,6 @@
   get_vect_pointer
   get_dynet_vect_ptr
   set_dynet_vptr
-  ;set_dynet_vect
+  get_dynet_vect_val
   )
 ;;  )
